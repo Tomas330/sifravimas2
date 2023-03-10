@@ -1,0 +1,76 @@
+#include <iostream>
+#include <cstring>
+#include <openssl/des.h>
+
+using namespace std;
+
+void encrypt_ecb(unsigned char *input, int input_len, unsigned char *output, DES_key_schedule *key_schedule) {
+    DES_ecb_encrypt(input, output, key_schedule, DES_ENCRYPT);
+}
+
+void decrypt_ecb(unsigned char *input, int input_len, unsigned char *output, DES_key_schedule *key_schedule) {
+    DES_ecb_encrypt(input, output, key_schedule, DES_DECRYPT);
+}
+
+void encrypt_cbc(unsigned char *input, int input_len, unsigned char *output, DES_key_schedule *key_schedule, unsigned char *iv) {
+    DES_ncbc_encrypt(input, output, input_len, key_schedule, iv, DES_ENCRYPT);
+}
+
+void decrypt_cbc(unsigned char *input, int input_len, unsigned char *output, DES_key_schedule *key_schedule, unsigned char *iv) {
+    DES_ncbc_encrypt(input, output, input_len, key_schedule, iv, DES_DECRYPT);
+}
+
+void encrypt_cfb(unsigned char *input, int input_len, unsigned char *output, DES_key_schedule *key_schedule, unsigned char *iv) {
+    int num = 0;
+    DES_cfb_encrypt(input, output, 1, input_len, key_schedule, iv, &num, DES_ENCRYPT);
+}
+
+void decrypt_cfb(unsigned char *input, int input_len, unsigned char *output, DES_key_schedule *key_schedule, unsigned char *iv) {
+    int num = 0;
+    DES_cfb_encrypt(input, output, 1, input_len, key_schedule, iv, &num, DES_DECRYPT);
+}
+
+int main() {
+    DES_cblock key = {0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef};
+    DES_key_schedule key_schedule;
+    DES_set_key_checked(&key, &key_schedule);
+
+    unsigned char iv[DES_BLOCK_SIZE] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
+
+    unsigned char input[1024];
+    cout << "Enter text: ";
+    cin.getline((char*)input, sizeof(input));
+
+    int input_len = strlen((char*)input);
+
+    unsigned char output[input_len];
+    unsigned char ivec[DES_BLOCK_SIZE];
+    memcpy(ivec, iv, DES_BLOCK_SIZE);
+
+    int choice_cipher;
+    cout << "Choose a cipher mode: " << endl;
+    cout << "1. ECB" << endl;
+    cout << "2. CBC" << endl;
+    cout << "3. CFB" << endl;
+    cin >> choice_cipher;
+
+    int choice_action;
+    cout << "Choose an action: " << endl;
+    cout << "1. Encrypt" << endl;
+    cout << "2. Decrypt" << endl;
+    cin >> choice_action;
+
+    switch(choice_cipher) {
+        case 1:
+            switch(choice_action) {
+                case 1:
+                    encrypt_ecb(input, input_len, output, &key_schedule);
+                    cout << "Encrypted text (in hex): ";
+                    for (int i = 0; i < input_len; i++) {
+                        cout << hex << (int)output[i];
+                    }
+                    cout << endl;
+                    break;
+                case 2:
+                    decrypt_ecb(input, input_len, output, &key_schedule);
+                    cout << "Decrypted text: " << output
